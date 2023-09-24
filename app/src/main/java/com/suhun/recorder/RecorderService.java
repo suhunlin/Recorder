@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.io.File;
 import java.sql.Time;
@@ -32,9 +33,17 @@ public class RecorderService extends Service {
         super.onCreate();
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setOutputFile(rfile);
+
+        try{
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+            Log.d(tag, "-----Start recorder..... -----");
+        }catch (Exception e){
+            Log.d(tag, "-----Exception occer "+e.toString()+"-----");
+        }
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -44,5 +53,12 @@ public class RecorderService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(mediaRecorder!=null){
+            mediaRecorder.stop();
+            mediaRecorder.reset();
+            mediaRecorder.release();
+            mediaRecorder = null;
+            Log.d(tag, "-----Stop recorder..... -----");
+        }
     }
 }
