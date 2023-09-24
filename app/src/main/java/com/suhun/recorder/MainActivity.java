@@ -5,18 +5,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private String tag = MainActivity.class.getSimpleName();
+    private TextView timeLog;
+    private MyReceiver myReceiver;
 
+    private class MyReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int second = intent.getIntExtra("second", -1);
+            if(second > 0){
+                timeLog.setText(""+second+"sec");
+            }
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        timeLog = findViewById(R.id.lid_timeLog);
         if(checkUserPermissionAboutRecorder()){
             initRecorder();
         }else{//三個permission如果有一個user沒有同意就發出requestPermissions請求使用者同意
@@ -53,7 +69,19 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        myReceiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter("startRecord");
+        registerReceiver(myReceiver, intentFilter);
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(myReceiver);
+    }
 
     private void initRecorder(){
 
@@ -67,6 +95,5 @@ public class MainActivity extends AppCompatActivity {
     public void stopRecorderFun(View view){
         Intent intent = new Intent(this, RecorderService.class);
         stopService(intent);
-
     }
 }
